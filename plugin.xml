@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+  <extension point="com.jaspersoft.studio.dataAdapters">
+         <dataAdapter ClassFactory="net.digitaledge.ESRDataAdapterFactory"/>      
+   </extension>
+      <extension point="com.jaspersoft.studio.queryDesigner">
+       <queryDesigner
+            QueryDesignerClass="net.digitaledge.query.ESRQueryDesigner" language="rest-elastic">
+      	</queryDesigner>
+  
+   </extension>
+       <extension point="com.jaspersoft.studio.server.resources">
+      <resource ClassFactory="net.digitaledge.server.ESRResourceFactory">
+      </resource>
+   </extension>
+</plugin>
