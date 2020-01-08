@@ -37,8 +37,8 @@ public class ESRDataAdapterFactory implements DataAdapterFactory {
         descriptor.getDataAdapter().setElasticSearchHost("localhost");
         descriptor.getDataAdapter().setElasticSearchPort("9200");
         //descriptor.getDataAdapter().setElasticSearchCluster("elasticsearch");
-        //descriptor.getDataAdapter().setElasticSearchUsername(null);
-        //descriptor.getDataAdapter().setElasticSearchPassword(null);
+        descriptor.getDataAdapter().setElasticSearchUsername(null);
+        descriptor.getDataAdapter().setElasticSearchPassword(null);
         descriptor.getDataAdapter().setElasticSearchMode("0");
 		return descriptor;
 	}

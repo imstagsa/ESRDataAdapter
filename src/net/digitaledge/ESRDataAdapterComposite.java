@@ -44,8 +44,8 @@ public class ESRDataAdapterComposite extends ADataAdapterComposite {
 	//private Text esClusterField;
 	private Text esIndexesField;
 	private Text esTypesField;
-	//private Text esUsernameField;
-	//private Text esPasswordField;
+	private Text esUsernameField;
+	private Text esPasswordField;
 	private Combo esSearchModeField;
 	
 	public ESRDataAdapterComposite(Composite parent, int style, JasperReportsContext jrContext) {
@@ -65,10 +65,10 @@ public class ESRDataAdapterComposite extends ADataAdapterComposite {
 		esPortField = createTextField(false);
 		//createLabel("Cluster");
 		//esClusterField = createTextField(false);
-		//createLabel("Username");
-		//esUsernameField = createTextField(false);
-		//createLabel("Password");
-		//esPasswordField = createTextField(true);
+		createLabel("Username");
+		esUsernameField = createTextField(false);
+		createLabel("Password");
+		esPasswordField = createTextField(true);
 		createLabel("Query Mode");
 		esSearchModeField = createComboField();
 	}
@@ -117,8 +117,8 @@ public class ESRDataAdapterComposite extends ADataAdapterComposite {
 		bindingContext.bindValue(SWTObservables.observeText(esIndexesField, SWT.Modify), PojoObservables.observeValue(dataAdapter, "elasticSearchIndexes"));
 		bindingContext.bindValue(SWTObservables.observeText(esTypesField, SWT.Modify), PojoObservables.observeValue(dataAdapter, "elasticSearchTypes"));
 		//bindingContext.bindValue(SWTObservables.observeText(esClusterField, SWT.Modify), PojoObservables.observeValue(dataAdapter, "elasticSearchCluster"));
-		//bindingContext.bindValue(SWTObservables.observeText(esUsernameField, SWT.Modify), PojoObservables.observeValue(dataAdapter, "elasticSearchUsername"));
-		//bindingContext.bindValue(SWTObservables.observeText(esPasswordField, SWT.Modify), PojoObservables.observeValue(dataAdapter, "elasticSearchPassword"));
+		bindingContext.bindValue(SWTObservables.observeText(esUsernameField, SWT.Modify), PojoObservables.observeValue(dataAdapter, "elasticSearchUsername"));
+		bindingContext.bindValue(SWTObservables.observeText(esPasswordField, SWT.Modify), PojoObservables.observeValue(dataAdapter, "elasticSearchPassword"));
 				
 	}
 

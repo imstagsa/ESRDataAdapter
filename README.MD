@@ -1,5 +1,5 @@
 **Elasticsearch REST DataAdapter**
-This is an additional plugin based on ElasticJasper (https://github.com/WedjaaOpen/ElasticJasper) that allows you to create reports with data from an ElasticSearch cluster.
+This is an additional plugin based on ElasticJasper written by Fabio Torchetti (https://github.com/WedjaaOpen/ElasticJasper) that allows you to create reports with data from an ElasticSearch cluster.
 The difference between two plugins is what Elasticsearch REST Plugin to query data uses REST API instead of Java API as ElasticJasper Plugin does it. 
 The reason to have Elasticsearch REST Plugin is what Elasticsearch team keep changing Java API from version to version, but REST API almost remains the same. 
 This approach potentially providing ability to use the same plugin for different Elasticsearch versions(2.x, 5.x, 6.x).

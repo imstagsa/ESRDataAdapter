@@ -3,8 +3,10 @@ package net.digitaledge.data;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
+import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -30,6 +32,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -98,9 +101,9 @@ public class ESRDataConnection implements Connection {
 	    Timestamp timestamp1 = new Timestamp(System.currentTimeMillis());
         StringBuilder stringBuilder = new StringBuilder("http://"+ESHOST+":"+ESPORT+ index);
         StringBuffer response = new StringBuffer();
+        
         try{
         	//stringBuilder.append(URLEncoder.encode(username, "UTF-8"));
-        	
         	URL obj = new URL(stringBuilder.toString());
         	HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         	con.setRequestMethod("GET");
@@ -108,7 +111,19 @@ public class ESRDataConnection implements Connection {
         	con.setRequestProperty("Accept-Charset", "UTF-8");
         	con.setRequestProperty("Accept", "*/*");
         	con.setRequestProperty("Content-Type","application/json");
+        	
+        	//Adding authentication header if both username and password are not empty
+        	if((this.username != null) && (this.password != null) && (!this.username.isEmpty()) && (!this.password.isEmpty()))
+        	{
+        		String auth = this.username + ":" + this.password;
+        		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.UTF_8));
+        		String authHeaderValue = "Basic " + new String(encodedAuth);
+        		con.setRequestProperty("Authorization", authHeaderValue);
+        	}
+        	
         	con.setDoOutput(true);
+        	System.out.println("stringBuilder.toString(): " + stringBuilder.toString());
+        	System.out.println("Query: " + query);
         	
         	if(query.length() > 0){
         		query = query + "\r\n";
@@ -119,6 +134,7 @@ public class ESRDataConnection implements Connection {
         		wr.close();
         	}
         	int responseCode = con.getResponseCode();
+        	System.out.println("Response Code: " + responseCode + ". " + con.getResponseMessage());
         	
         	if(responseCode != 200)
         	{
