@@ -23,6 +23,4 @@ Import-Package: com.jaspersoft.jasperserver.api.metadata.xml.domain.impl,
  com.jaspersoft.studio.server.protocol.restv2,
  com.jaspersoft.studio.server.utils,
  com.jaspersoft.studio.server.wizard.resource,
- com.jaspersoft.studio.server.wizard.resource.page,
- org.json.simple,
- org.json.simple.parser
+ com.jaspersoft.studio.server.wizard.resource.page

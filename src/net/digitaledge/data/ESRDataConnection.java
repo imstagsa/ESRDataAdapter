@@ -3,7 +3,6 @@ package net.digitaledge.data;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
-import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -27,12 +26,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-import org.apache.commons.codec.binary.Base64;
+//import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -42,16 +42,15 @@ import net.sf.jasperreports.engine.design.JRDesignField;
 public class ESRDataConnection implements Connection {
 	
     private String queryString;
-    private String cluster;
-    private String indice;
-    private String types;
-    private String strIndexes;
-    private String strTypes;
-    private String username;
-    private String password;
-    private String ESHOST;
-    private Integer ESPORT;
-    private int searchMode;
+    private String elasticSearchCluster;
+    private String elasticSearchIndexes;
+    private String elasticSearchUsername;
+    private String elasticSearchPassword;
+    private String elasticSearchHost;
+    private Integer elasticSearchPort;
+    private Integer elasticSearchMode;
+    private String elasticSearchTypes;
+    
     private List<JRDesignField> jrDesignFieldList = new ArrayList<JRDesignField>();
 	private List<Object[]> dataFieldList = new ArrayList<Object[]>();  	
 	private static List<String> AggrSearchFilter = Arrays.asList("buckets");
@@ -59,39 +58,38 @@ public class ESRDataConnection implements Connection {
 	
 	private final static Logger logger = Logger.getLogger(ESRDataConnection.class);
     
+	
     public ESRDataConnection(String hostname, int port)
     {
     	logger.debug("ESRDataConnection.ESRDataConnection");
-        this.ESHOST = hostname;
-        this.ESPORT = port;
+        this.elasticSearchHost = hostname;
+        this.elasticSearchPort = port;
     }
     
     public ESRDataConnection(String hostname, int port, String indexes)
     {
     	logger.debug("ESRDataConnection.ESRDataConnection");
-        this.ESHOST = hostname;
-        this.ESPORT = port;
-        this.indice = indexes;
+        this.elasticSearchHost = hostname;
+        this.elasticSearchPort = port;
+        this.elasticSearchIndexes = indexes;
     }
     
     public ESRDataConnection(String indexes, String types, int searchMode, String hostname, int port, String username, String password, String cluster)
     {
     	logger.debug("ESRDataConnection.ESRDataConnection");
-        this.username = username;
-        this.password = password;
-        this.ESHOST = hostname;
-        this.cluster = cluster;
-        this.ESPORT = port;
-        this.searchMode = searchMode;
-        this.indice = indexes;
-        this.types = types;
-        this.strIndexes = indexes;
-        this.strTypes = types;
+        this.elasticSearchUsername = username;
+        this.elasticSearchPassword = password;
+        this.elasticSearchHost = hostname;
+        this.elasticSearchCluster = cluster;
+        this.elasticSearchPort = port;
+        this.elasticSearchMode = searchMode;
+        this.elasticSearchIndexes = indexes;
+        this.elasticSearchTypes = types;
     }
 	
 	public ESRDataConnection clone()
 	{
-		return new ESRDataConnection(strIndexes, strTypes, searchMode, ESHOST, ESPORT, username, password, cluster);
+		return new ESRDataConnection(elasticSearchIndexes, elasticSearchTypes, elasticSearchMode, elasticSearchHost, elasticSearchPort, elasticSearchUsername, elasticSearchPassword, elasticSearchCluster);
 	}
 	
 	private String getNewLogs(String index, String query) {
@@ -99,11 +97,10 @@ public class ESRDataConnection implements Connection {
 		logger.debug("ESRDataConnection.getNewLogs: " + query);
 		String json = new String();
 	    Timestamp timestamp1 = new Timestamp(System.currentTimeMillis());
-        StringBuilder stringBuilder = new StringBuilder("http://"+ESHOST+":"+ESPORT+ index);
+        StringBuilder stringBuilder = new StringBuilder("http://"+elasticSearchHost+":"+elasticSearchPort+ index);
         StringBuffer response = new StringBuffer();
         
         try{
-        	//stringBuilder.append(URLEncoder.encode(username, "UTF-8"));
         	URL obj = new URL(stringBuilder.toString());
         	HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         	con.setRequestMethod("GET");
@@ -112,18 +109,18 @@ public class ESRDataConnection implements Connection {
         	con.setRequestProperty("Accept", "*/*");
         	con.setRequestProperty("Content-Type","application/json");
         	
-        	//Adding authentication header if both username and password are not empty
-        	if((this.username != null) && (this.password != null) && (!this.username.isEmpty()) && (!this.password.isEmpty()))
+        	/**
+        	 * Adding authentication header if both username and password are not empty.
+        	 */
+        	if((this.elasticSearchUsername != null) && (this.elasticSearchPassword != null) && (!this.elasticSearchUsername.isEmpty()) && (!this.elasticSearchPassword.isEmpty()))
         	{
-        		String auth = this.username + ":" + this.password;
-        		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.UTF_8));
+        		String auth = this.elasticSearchUsername + ":" + this.elasticSearchPassword;
+        		byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
         		String authHeaderValue = "Basic " + new String(encodedAuth);
         		con.setRequestProperty("Authorization", authHeaderValue);
         	}
         	
         	con.setDoOutput(true);
-        	System.out.println("stringBuilder.toString(): " + stringBuilder.toString());
-        	System.out.println("Query: " + query);
         	
         	if(query.length() > 0){
         		query = query + "\r\n";
@@ -134,7 +131,6 @@ public class ESRDataConnection implements Connection {
         		wr.close();
         	}
         	int responseCode = con.getResponseCode();
-        	System.out.println("Response Code: " + responseCode + ". " + con.getResponseMessage());
         	
         	if(responseCode != 200)
         	{
@@ -160,11 +156,11 @@ public class ESRDataConnection implements Connection {
 
     	getFieldMapping();
     	
-    	String json = getNewLogs("/" + indice + "/_search?pretty", queryString);
+    	String json = getNewLogs("/" + elasticSearchIndexes + "/_search", queryString);
     	ESRUtils jSONParser = new ESRUtils();
     	Object obj =  jSONParser.parse(json);
 		
-    	if(searchMode == 1)
+    	if(elasticSearchMode == 1)
     		buildDatasetFromJSON(obj, AggrSearchFilter);
     	else
     		buildDatasetFromJSON(obj, LogsSearchFilter);
@@ -174,11 +170,11 @@ public class ESRDataConnection implements Connection {
 
     private boolean getFieldMapping()
 	{
-    	if(searchMode == 0)
+    	if(elasticSearchMode == 0)
     	{
     		ESRUtils jSONParser = new ESRUtils();
-    		List<String> MAPPING_FILTER = Arrays.asList(indice, "mappings", types, "properties"); 
-    		String json = getNewLogs("/" + indice + "/_mapping/" + types + "?pretty", "");
+    		List<String> MAPPING_FILTER = Arrays.asList(elasticSearchIndexes, "mappings", elasticSearchTypes, "properties"); 
+    		String json = getNewLogs("/" + elasticSearchIndexes + "/_mapping/" + elasticSearchTypes + "?pretty", "");
     		Object obj =  jSONParser.parse(json);
     		obj =  ESRUtils.findFirstObject((JSONObject)obj, "mappings");
     		obj =  ESRUtils.findFirstObject((JSONObject)obj, "properties");
@@ -211,8 +207,6 @@ public class ESRDataConnection implements Connection {
 			jrDesignFieldList.add(jrfieldInt);
     	}
     	
-    	//jrDesignFieldList.forEach(arg0 -> System.out.println(arg0.getName()));
-
 		logger.debug("ESRDataConnection.getFieldMapping RETURNING ");
 		return true;
 	}
@@ -228,7 +222,7 @@ public class ESRDataConnection implements Connection {
      */
     public int testData()
     {
-       	String jsonData = getNewLogs("/" + indice + "/_search", queryString);
+       	String jsonData = getNewLogs("/" + elasticSearchIndexes + "/_search", queryString);
        	if(jsonData.length() > 0)
        	{
        		ESRUtils jSONParser = new ESRUtils();
@@ -246,11 +240,10 @@ public class ESRDataConnection implements Connection {
     {
     	
     	getFieldMapping();
-       	String jsonData = getNewLogs("/" + indice + "/_search", queryString);
+       	String jsonData = getNewLogs("/" + elasticSearchIndexes + "/_search", queryString);
        	if(jsonData.length() > 0)
        	{
        		ESRUtils jSONParser = new ESRUtils();
-       		jSONParser = new ESRUtils();
        		Object obj =  jSONParser.parse(jsonData);
        		buildDatasetFromJSON(obj, LogsSearchFilter);
            	return dataFieldList.size();
@@ -265,7 +258,7 @@ public class ESRDataConnection implements Connection {
     {
     	
     	getFieldMapping();
-       	String jsonData = getNewLogs("/" + indice + "/_search?size=0", queryString);
+       	String jsonData = getNewLogs("/" + elasticSearchIndexes + "/_search?size=0", queryString);
        	if(jsonData.length() > 0)
        	{
        		ESRUtils jSONParser = new ESRUtils();
@@ -288,12 +281,14 @@ public class ESRDataConnection implements Connection {
     		{
     			int index = 0;
     			Class cls = null;
+    			String fieldName = null;
     			String description = null;
     			
     			for(int i = 0; i < jrDesignFieldList.size(); i++)
     				if(mapVariableValue.getVariable().equals(jrDesignFieldList.get(i).getName()))
     				{
     					index = i;
+    					fieldName = jrDesignFieldList.get(i).getName();
     					cls = jrDesignFieldList.get(i).getValueClass();
     					description = jrDesignFieldList.get(i).getDescription();
     				}
@@ -308,8 +303,7 @@ public class ESRDataConnection implements Connection {
 						
 								case "class java.lang.Long":  objectArray[index] = Long.valueOf(mapVariableValue.getValue());
                     				break;
-						
-								case "class java.lang.Integer":  objectArray[index] = Integer.valueOf(mapVariableValue.getValue());
+								case "class java.lang.Integer": objectArray[index] = Integer.valueOf(mapVariableValue.getValue());
                 					break;
                 				
 								case "class java.lang.Short":  objectArray[index] = Short.valueOf(mapVariableValue.getValue());
@@ -332,7 +326,10 @@ public class ESRDataConnection implements Connection {
             			
 								default:  objectArray[index] = mapVariableValue.getValue();
                     				break;
+                    				
+                    				
     						}
+    						
     					} catch(Exception e){logger.debug(e.toString());}
     				}
     			}
@@ -361,11 +358,9 @@ public class ESRDataConnection implements Connection {
 		}
 		else
 		{
-			String[] dateFormats = format.split("\\|");
-			
 			if(format.length() > 0)
 			{
-			
+				String[] dateFormats = format.split("\\|");
 				for(int i = 0; i < dateFormats.length; i++)
 				{
 					logger.debug("Trying to pasrse " + field.getValue().trim() + " with format: " + dateFormats[i]);
@@ -451,20 +446,12 @@ public class ESRDataConnection implements Connection {
 	private void buildDatasetFromJSON(Object obj, List<String> filter)
 	{
 
-		//for(int i = 0; i < filter.size(); i++)
-		//	obj =  ESRUtils.findObject((JSONObject)obj, filter.get(i));
-
 		for(int i = 0; i < filter.size(); i++)
 			obj =  ESRUtils.findFirstObject((JSONObject)obj, filter.get(i));
 		
 		if(obj instanceof org.json.simple.JSONArray)
-		{
 			for(int i=0; i < ((org.json.simple.JSONArray)obj).size(); i++)
-			{
-				List<MapVariableValue> list = ESRUtils.convertToMapVariableValue((JSONObject)((org.json.simple.JSONArray)obj).get(i));
-				addRowToDataset(list);
-			}
-		}
+				addRowToDataset(ESRUtils.convertToMapVariableValue((JSONObject)((org.json.simple.JSONArray)obj).get(i)));
 	}
     
     public void setSearch(String search)

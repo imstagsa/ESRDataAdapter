@@ -149,30 +149,56 @@ public class ESRUtils {
              
              if(keyvalue != null)
              {
-            	 if(keyvalue instanceof JSONArray)
-            	 {
-            		 listOfObjects.add(new MapVariableValue(keyStr, ""));
-            		 convertJsonArray((JSONArray)keyvalue, listOfObjects, keyStr);
-            	 }
-            	 else if(keyvalue instanceof JSONObject)
-            	 {
-            		 if(keyStr.equals("_source"))
-            		 {
-            			 listOfObjects.add(new MapVariableValue(keyStr, ""));
-            			 convertJSONObject((JSONObject)keyvalue, listOfObjects, "");
-            		 }
-            		 else
-            		 {
-            			listOfObjects.add(new MapVariableValue(keyStr, ""));
-            			convertJSONObject((JSONObject)keyvalue, listOfObjects, parentFieldName+keyStr+".");
-            		 }
-            	 }
-            	 else if(keyvalue instanceof String)
-            		 if(keyStr != null && parentFieldName != null)
-            			 listOfObjects.add(new MapVariableValue(parentFieldName + keyStr, (String) keyvalue));
-            	 else
-            		 if(keyStr != null && parentFieldName != null)
-            			 listOfObjects.add(new MapVariableValue(parentFieldName + keyStr, keyvalue.toString()));
+				switch (keyvalue.getClass().toString()) {
+					case "class org.json.simple.JSONArray":
+					{
+						/**
+						 *  WINLOGBEAT >= 7.0, Field  "keywords" : ["Audit Success"] - Array does have only value, not key:value.
+						 *  This is temporary workaround only for key winlog.keywords.
+						 *  TO DO: implement support Array type fields
+						 */
+						if(keyStr.equals("keywords") && keyvalue != null)
+						{
+							String keystr = keyvalue.toString();
+							keystr = keystr.replaceAll("\\[", "");
+							keystr = keystr.replaceAll("\\]", "");
+							keystr = keystr.replaceAll("\"", "");
+							listOfObjects.add(new MapVariableValue(parentFieldName + keyStr, (String) keystr));
+						}
+						else
+						{
+							listOfObjects.add(new MapVariableValue(keyStr, ""));
+							convertJsonArray((JSONArray)keyvalue, listOfObjects, keyStr);
+						}
+					}
+             		break;
+					case "class org.json.simple.JSONObject":
+					{
+			            if(keyStr.equals("_source"))
+			            {
+			            	listOfObjects.add(new MapVariableValue(keyStr, ""));
+			            	convertJSONObject((JSONObject)keyvalue, listOfObjects, "");
+			            }
+			            else
+			            {
+			            	listOfObjects.add(new MapVariableValue(keyStr, ""));
+			            	convertJSONObject((JSONObject)keyvalue, listOfObjects, parentFieldName+keyStr+".");
+			            }
+					}
+                 	break;
+					case "class java.lang.String":
+					{
+						 if(keyStr != null && parentFieldName != null)
+	            			 listOfObjects.add(new MapVariableValue(parentFieldName + keyStr, (String) keyvalue));
+					}
+					break;
+					default: 
+					{
+						if(keyStr != null && parentFieldName != null)
+	            			 listOfObjects.add(new MapVariableValue(parentFieldName + keyStr, keyvalue.toString()));
+					}
+    				break;
+				}
              }
          }
      } catch (Exception e) {

@@ -6,7 +6,7 @@
    </extension>
       <extension point="com.jaspersoft.studio.queryDesigner">
        <queryDesigner
-            QueryDesignerClass="net.digitaledge.query.ESRQueryDesigner" language="rest-elastic">
+            QueryDesignerClass="net.digitaledge.query.ESRQueryDesigner" language="esr-elastic">
       	</queryDesigner>
   
    </extension>

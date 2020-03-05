@@ -13,7 +13,7 @@ import net.sf.jasperreports.engine.design.JRDesignField;
 
 public class ESRDataSource implements JRDataSource {
 	
-    public static String QUERY_LANGUAGE = "rest-elastic";
+    public static String QUERY_LANGUAGE = "esr-elastic";
     public static String ELASTIC_SEARCH = "es_search";
     
     public final static int ES_MODE_HITS = 0;
@@ -44,7 +44,10 @@ public class ESRDataSource implements JRDataSource {
 		try{
 			for(int i = 0; i < jrDesignFieldList.size(); i++)
 				if(jrField.getName().equals(jrDesignFieldList.get(i).getName()))
+				{
+					//System.out.println("FIELD: " + jrField.getName() + "  VALUE:" + dataFieldList.get(counter)[i] +"  CLASS: "+jrField.getValueClass().toString());
 					return dataFieldList.get(counter)[i];
+				}
 		}catch (Exception e)
 		{
 			logger.debug("ESRDataSource.getFieldValue" + e.toString());

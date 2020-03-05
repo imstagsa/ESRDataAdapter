@@ -148,7 +148,7 @@ public class ESRQueryExecuter extends JRAbstractQueryExecuter {
 		if (connection == null) {
 			connection = processConnection(reportParameters.get(JRParameter.REPORT_CONNECTION));
 			if (connection == null) {
-				throw new JRException("No ES connection");
+				throw new JRException("No ESR-1 connection");
 			}
 		}
 		
